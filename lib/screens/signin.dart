@@ -25,13 +25,11 @@ class _SignInState extends State<SignIn> {
   //  Field
   String username , password;
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('เข้าสู่ระบบ',style: TextStyle(fontFamily: 'Prompt'),),
-        
-      ),
+
       body: Container(
         
         decoration: BoxDecoration(
@@ -79,9 +77,11 @@ class _SignInState extends State<SignIn> {
       child: RaisedButton(
         elevation: 5.0,
         onPressed: (){
-          if (username == null || username.isEmpty || password == null || password.isEmpty) {
-            normalDialog(context, 'มีช่องว่าง กรุณากรอกให้ครบ');
-          } else {
+          if (username == null || username.isEmpty) {
+            normalDialog(context, 'กรุณากรอกชื่อผู้ใช้ของท่าน');
+          }else if (password == null || password.isEmpty){
+             normalDialog(context, 'กรุณากรอกรหัสผ่านของท่าน');
+          }else {
             checkAuthen();
           }
         },
@@ -113,6 +113,7 @@ class _SignInState extends State<SignIn> {
       print('result = $result');
       for (var map in result) {
         UserModel userModel = UserModel.fromJson(map);
+        
         if (password == userModel.memPassword) {
           String memStatus = userModel.memStatus;
           if (memStatus == 'user') {
@@ -123,8 +124,9 @@ class _SignInState extends State<SignIn> {
             routeTuService(MainRider(),userModel);
           } else if (memStatus == 'admin'){
             routeTuService(MainAdmin(),userModel);
-          }
-          else {
+          }else if(memStatus == 'ban'){
+            normalDialog(context, 'บัญชีผู้ใช้ถูกระงับโปรดติดต่อเจ้าหน้าที่');
+          }else {
             normalDialog(context, 'Error');
           }
         } else {

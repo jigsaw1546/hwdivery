@@ -1,13 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hiwwoydelivery/model/user_model.dart';
 import 'package:hiwwoydelivery/utility/my_constant.dart';
 import 'package:hiwwoydelivery/utility/my_style.dart';
+import 'package:hiwwoydelivery/utility/normal_dialog.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:hiwwoydelivery/utility/normal_dialog.dart';
 
 class EditInfoShop extends StatefulWidget {
   @override
@@ -16,39 +19,48 @@ class EditInfoShop extends StatefulWidget {
 
 class _EditInfoShopState extends State<EditInfoShop> {
   String nameShop, address, phone, urlImage;
+  UserModel userModel;
   Location location = Location();
   double lat, lng;
-
-  UserModel userModel;
+  File file;
 
   @override
   void initState() {
- 
     super.initState();
     readCurrentInfo();
+    findLatLng();
+    //error ตัวนี้ Error
+  }
 
-    location.onLocationChanged.listen((event) {
-      setState(() {
-        lat = event.latitude;
-        lng = event.longitude;
-        // print('lat = $lat');
-        // print('lng = $lng');
-      });
+  Future<Null> findLatLng() async {
+    LocationData locationData = await findLocationData();
+    setState(() {
+      lat = locationData.latitude;
+      lng = locationData.longitude;
     });
+    print('lat = $lat |||| lng = $lng');
+  }
+
+  Future<LocationData> findLocationData() async {
+    Location location = Location();
+    try {
+      return location.getLocation();
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<Null> readCurrentInfo() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    String mem_id = preferences.getString('mem_id');
-
+    String memId = preferences.getString('mem_id');
+    print('memids ==>>$memId');
     String url =
-        '${MyConstant().domain}/HiwwoyDelivery/getuserwhereid.php?isAdd=true&mem_id=$mem_id';
-
+        '${MyConstant().domain}/HiwwoyDelivery/getuserwhereid.php?isAdd=true&mem_id=$memId';
     Response response = await Dio().get(url);
-    print('respon ===============> $response');
-
+    //print('respon ===============> $response');
     var result = json.decode(response.data);
-    print('result ===============> $result');
+    // print('result ===============> $result');
+    print('==================================');
 
     for (var map in result) {
       print('map = $map');
@@ -73,8 +85,8 @@ class _EditInfoShopState extends State<EditInfoShop> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
           FloatingActionButton.extended(
-            onPressed: () {},
-            label: Text('Camara'),
+            onPressed: () => chooseImage(ImageSource.camera),
+            label: Text('Camera'),
             icon: Icon(Icons.camera),
             heroTag: UniqueKey(),
             backgroundColor: Colors.pink,
@@ -83,8 +95,8 @@ class _EditInfoShopState extends State<EditInfoShop> {
             width: 8.0,
           ),
           FloatingActionButton.extended(
-            onPressed: () {},
-            label: Text('Camara'),
+            onPressed: () => chooseImage(ImageSource.gallery),
+            label: Text('Gallery'),
             heroTag: UniqueKey(),
             icon: Icon(Icons.photo_library),
             backgroundColor: Colors.pink,
@@ -94,29 +106,26 @@ class _EditInfoShopState extends State<EditInfoShop> {
     );
   }
 
-  Widget showContent() {
-  return SingleChildScrollView(
+  Widget showContent() => SingleChildScrollView(
         child: Column(
           children: <Widget>[
             showImage(),
             nameShopForm(),
             addressForm(),
             phoneForm(),
-            lat == null ? MyStyle().showProgress : ShowMap() ,
+            lat == null ? MyStyle().showProgress : showMap(),
             MyStyle().mySizebox(),
-            saveButton(),
-            MyStyle().mySizebox(),
-            MyStyle().mySizebox(),
+            editButton(),
             MyStyle().mySizebox(),
             MyStyle().mySizebox(),
             MyStyle().mySizebox(),
-            // addAndEditButton(),
-            // addAndEditButton2(),
+            MyStyle().mySizebox(),
+            MyStyle().mySizebox(),
           ],
         ),
       );
-  }
-  Widget saveButton() {
+
+  Widget editButton() {
     return RaisedButton.icon(
       onPressed: () {
         if (nameShop == null || nameShop.isEmpty) {
@@ -128,11 +137,11 @@ class _EditInfoShopState extends State<EditInfoShop> {
         } else if (urlImage == null) {
           normalDialog(context, 'กรุณาเลือกโลโก้ร้าน');
         } else {
-       
+          confirmDialog();
         }
       },
       icon: Icon(
-        Icons.save,
+        Icons.edit,
         color: Colors.black,
       ),
       label: Text(
@@ -146,10 +155,65 @@ class _EditInfoShopState extends State<EditInfoShop> {
       ),
       padding: EdgeInsets.all(15.0),
       shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(30.0),
+        borderRadius: BorderRadius.circular(10.0),
       ),
       color: Colors.yellow,
     );
+  }
+
+  Future<Null> confirmDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text('คุณแน่ใจที่จะแก้ไขข้อมูลนี้ '),
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              OutlineButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  editThread();
+                },
+                child: Text('ตกลง'),
+              ),
+              MyStyle().mySizebox(),
+              OutlineButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('ยกเลิก'),
+              ),
+            ],
+          )
+        ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+      ),
+    );
+  }
+
+  Future<Null> editThread() async {
+    Random random = Random();
+    int i = random.nextInt(100000);
+    String nameFile = 'editShop$i.jpg';
+    Map<String, dynamic> map = Map();
+    map['file'] = await MultipartFile.fromFile(file.path, filename: nameFile);
+    FormData formData = FormData.fromMap(map);
+
+    String urlUpload = '${MyConstant().domain}/HiwwoyDelivery/saveFile.php';
+    await Dio().post(urlUpload, data: formData).then((value) async {
+      urlImage = '/HiwwoyDelivery/Images/Shop/$nameFile';
+      String memId = userModel.memId;
+      //print('MEMID = $memId');
+      String url =
+          '${MyConstant().domain}/HiwwoyDelivery/edituserwhereid.php?isAdd=true&mem_id=$memId&shop_name=$nameShop&shop_phone=$phone&shop_address=$address&shop_image=$urlImage&shop_lat=$lat&shop_lng=$lng';
+      Response response = await Dio().get(url);
+      if (response.toString() == 'true') {
+        Navigator.pop(context);
+      } else {
+        normalDialog(context, 'แก้ไขข้อมูลไม่สำเร็จ');
+      }
+    });
   }
 
   Set<Marker> currentMarker() {
@@ -163,7 +227,7 @@ class _EditInfoShopState extends State<EditInfoShop> {
     ].toSet();
   }
 
-  Container ShowMap() {
+  Container showMap() {
     CameraPosition cameraPosition = CameraPosition(
       target: LatLng(lat, lng),
       zoom: 16.0,
@@ -171,7 +235,7 @@ class _EditInfoShopState extends State<EditInfoShop> {
 
     return Container(
       margin: EdgeInsets.only(top: 16.0),
-      height: 250.0,
+      height: 250,
       child: GoogleMap(
         initialCameraPosition: cameraPosition,
         mapType: MapType.normal,
@@ -182,16 +246,32 @@ class _EditInfoShopState extends State<EditInfoShop> {
   }
 
   Widget showImage() {
-  return Container(
+    return Container(
+      width: 250.0,
+      height: 250.0,
+      margin: EdgeInsetsDirectional.only(top: 16.0),
+      child: Container(
         width: 250.0,
         height: 250.0,
-        margin: EdgeInsetsDirectional.only(top: 16.0),
-        child: Container(
-          width: 250.0,
-          height: 250.0,
-          child: Image.network('${MyConstant().domain}$urlImage'),
-        ),
+        child: file == null
+            ? Image.network('${MyConstant().domain}$urlImage')
+            : Image.file(file),
+      ),
+    );
+  }
+
+  Future<Null> chooseImage(ImageSource source) async {
+    try {
+      var object = await ImagePicker().getImage(
+        source: source,
+        maxWidth: 800.0,
+        maxHeight: 800.0,
       );
+
+      setState(() {
+        file = File(object.path);
+      });
+    } catch (e) {}
   }
 
   Widget nameShopForm() {
@@ -307,6 +387,4 @@ class _EditInfoShopState extends State<EditInfoShop> {
       ],
     );
   }
-
-
 }

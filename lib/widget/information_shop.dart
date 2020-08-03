@@ -25,9 +25,9 @@ class _InformationShopState extends State<InformationShop> {
 
   Future<Null> readDataUser() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    String mem_id = preferences.getString('mem_id');
+    String memid = preferences.getString('mem_id');
     String url =
-        '${MyConstant().domain}/HiwwoyDelivery/getuserwhereid.php?isAdd=true&mem_id=$mem_id';
+        '${MyConstant().domain}/HiwwoyDelivery/getuserwhereid.php?isAdd=true&mem_id=$memid';
     await Dio().get(url).then((value) {
       // print('value = $value');
       var result = json.decode(value.data);
@@ -42,11 +42,13 @@ class _InformationShopState extends State<InformationShop> {
   }
 
   void routeToAddInfo() {
-    Widget widget = userModel.shopName.isEmpty ? AddInfoShop() : EditInfoShop() ;
+    Widget widget = userModel.shopName.isEmpty ? AddInfoShop() : EditInfoShop();
     MaterialPageRoute materialPageRoute = MaterialPageRoute(
       builder: (context) => widget,
     );
-    Navigator.push(context, materialPageRoute);
+    Navigator.push(context, materialPageRoute).then(
+      (value) => readDataUser(),
+    );
   }
 
   @override
@@ -57,13 +59,13 @@ class _InformationShopState extends State<InformationShop> {
             ? MyStyle().showProgress()
             : userModel.shopName.isEmpty
                 ? showNoData(context)
-                : ShowListInfoShop(),
+                : showListInfoShop(),
         addAndEditButton(),
       ],
     );
   }
 
-  Widget ShowListInfoShop() => Column(
+  Widget showListInfoShop() => Column(
         children: <Widget>[
           Center(
               child: MyStyle()
@@ -79,11 +81,9 @@ class _InformationShopState extends State<InformationShop> {
     return Container(
       width: 200.0,
       height: 200.0,
-          child: Image.network('${MyConstant().domain}${userModel.shopImage}'),
-        );
-        
+      child: Image.network('${MyConstant().domain}${userModel.shopImage}'),
+    );
   }
-  
 
   Set<Marker> shopMarker() {
     return <Marker>[
@@ -108,7 +108,6 @@ class _InformationShopState extends State<InformationShop> {
     CameraPosition position = CameraPosition(target: latLng, zoom: 16.0);
 
     return Expanded(
-
       child: GoogleMap(
         initialCameraPosition: position,
         mapType: MapType.normal,
@@ -117,7 +116,6 @@ class _InformationShopState extends State<InformationShop> {
       ),
     );
   }
-  
 
   Widget showNoData(BuildContext context) =>
       MyStyle().titleCenter(context, 'ยังไม่มีข้อมูล กรุณาเพิ่มข้อมูล!');

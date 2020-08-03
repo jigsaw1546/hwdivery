@@ -15,10 +15,14 @@ Future<void> normalDialog(BuildContext context, String message) async {
           children: <Widget>[
             FlatButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('OK', style: kLabelStyleblack)),
+                child: Text('ตกลง', style: kLabelStyleblack)),
           ],
         )
+        
       ],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
     ),
+  ),
   );
 }

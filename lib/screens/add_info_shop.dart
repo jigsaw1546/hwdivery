@@ -51,6 +51,28 @@ class _AddInfoShopState extends State<AddInfoShop> {
       appBar: AppBar(
         title: Text('เพิ่มข้อมูลร้านค้า'),
       ),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          FloatingActionButton.extended(
+            onPressed: () => chooseImage(ImageSource.camera),
+            label: Text('Camera'),
+            icon: Icon(Icons.camera),
+            heroTag: UniqueKey(),
+            backgroundColor: Colors.pink,
+          ),
+          SizedBox(
+            width: 8.0,
+          ),
+          FloatingActionButton.extended(
+            onPressed: () => chooseImage(ImageSource.gallery),
+            label: Text('Gallery'),
+            heroTag: UniqueKey(),
+            icon: Icon(Icons.photo_library),
+            backgroundColor: Colors.pink,
+          ),
+        ],
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -75,7 +97,6 @@ class _AddInfoShopState extends State<AddInfoShop> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 groupImage(),
-                groupImageicon(),
                 nameForm(),
                 addressForm(),
                 phoneForm(),
@@ -83,6 +104,11 @@ class _AddInfoShopState extends State<AddInfoShop> {
                 lat == null ? MyStyle().showProgress() : showmap(),
                 MyStyle().mySizebox(),
                 saveButton(),
+                MyStyle().mySizebox(),
+                MyStyle().mySizebox(),
+                MyStyle().mySizebox(),
+                MyStyle().mySizebox(),
+                MyStyle().mySizebox(),
               ],
             ),
           ),
@@ -103,7 +129,7 @@ class _AddInfoShopState extends State<AddInfoShop> {
         } else if (file == null) {
           normalDialog(context, 'กรุณาเลือกโลโก้ร้าน');
         } else {
-          UploadImage();
+          uploadImage();
         }
       },
       icon: Icon(
@@ -121,13 +147,13 @@ class _AddInfoShopState extends State<AddInfoShop> {
       ),
       padding: EdgeInsets.all(15.0),
       shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(30.0),
+        borderRadius: BorderRadius.circular(10.0),
       ),
-      color: Colors.blue,
+      color: Colors.green,
     );
   }
 
-  Future<Null> UploadImage() async {
+  Future<Null> uploadImage() async {
     Random random = Random();
     int i = random.nextInt(100000);
     String nameImage = 'shop$i.jpg';
@@ -147,14 +173,14 @@ class _AddInfoShopState extends State<AddInfoShop> {
     } catch (e) {}
   }
 
-  Future<Null> editUsershop()async{
-
+  Future<Null> editUsershop() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    String mem_id = preferences.getString('mem_id');
+    String memId = preferences.getString('mem_id');
 
-    String url ='${MyConstant().domain}/HiwwoyDelivery/edituserwhereid.php?isAdd=true&mem_id=$mem_id&shop_name=$nameShop&shop_phone=$phone&shop_address=$address&shop_image=$urlImage&shop_lat=$lat&shop_lng=$lng';
+    String url =
+        '${MyConstant().domain}/HiwwoyDelivery/edituserwhereid.php?isAdd=true&mem_id=$memId&shop_name=$nameShop&shop_phone=$phone&shop_address=$address&shop_image=$urlImage&shop_lat=$lat&shop_lng=$lng';
 
-    await Dio().get(url).then((value) { 
+    await Dio().get(url).then((value) {
       if (value.toString() == 'true') {
         Navigator.pop(context);
       } else {
@@ -208,37 +234,15 @@ class _AddInfoShopState extends State<AddInfoShop> {
     );
   }
 
-  Row groupImageicon() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        IconButton(
-            icon: Icon(
-              Icons.add_a_photo,
-              size: 36.0,
-              color: Colors.black,
-            ),
-            onPressed: () => chooseImage(ImageSource.camera)),
-        IconButton(
-            icon: Icon(
-              Icons.add_photo_alternate,
-              size: 36.0,
-              color: Colors.black,
-            ),
-            onPressed: () => chooseImage(ImageSource.gallery))
-      ],
-    );
-  }
-
   Future<Null> chooseImage(ImageSource imageSource) async {
     try {
-      var object = await ImagePicker.pickImage(
+      var object = await ImagePicker().getImage(
         source: imageSource,
         maxHeight: 800.0,
         maxWidth: 800.0,
       );
       setState(() {
-        file = object;
+        file = File(object.path);
       });
     } catch (e) {}
   }
@@ -353,7 +357,4 @@ class _AddInfoShopState extends State<AddInfoShop> {
       ],
     );
   }
-
-
-  
 }

@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:hiwwoydelivery/screens/home.dart';
 
-main() => runApp(Myapp());
+import 'package:flutter/material.dart';
+import 'package:hiwwoydelivery/screens/splash_page.dart';
+
+void main() {
+ runApp(Myapp());
+}
 
 class Myapp extends StatelessWidget {
   @override
@@ -9,7 +12,7 @@ class Myapp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Prompt'),
       title: 'หิวโว้ยย Delivery',
-      home: Home(),
+      home: SplashPage(),
     );
   }
 }

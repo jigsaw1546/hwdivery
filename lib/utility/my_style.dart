@@ -11,7 +11,16 @@ class MyStyle {
         width: 8.0,
         height: 16.0,
       );
-
+  TextStyle mainTitle = TextStyle(  
+    fontSize: 20.0,
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  );
+   TextStyle mainTitleh3 = TextStyle(  
+    fontSize: 16.0,
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  );
   Text showTitle(String title) => Text(
         title,
         style: TextStyle(
@@ -26,6 +35,15 @@ class MyStyle {
         title,
         style: TextStyle(
           fontSize: 24.0,
+          fontFamily: 'Prompt',
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+      Text showTitleblackh3(String title) => Text(
+        title,
+        style: TextStyle(
+          fontSize: 18.0,
           fontFamily: 'Prompt',
           color: Colors.black,
           fontWeight: FontWeight.bold,

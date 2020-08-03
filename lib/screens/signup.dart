@@ -68,16 +68,14 @@ class _SignUpState extends State<SignUp> {
         onPressed: () {
           print(
               'Fullname =$fullname, Username = $username , Password = $password , Phone = $phone');
-          if (fullname == null ||
-              fullname.isEmpty ||
-              username == null ||
-              username.isEmpty ||
-              password == null ||
-              password.isEmpty ||
-              phone == null ||
-              phone.isEmpty) {
-            print('Have Spece');
-            normalDialog(context, 'มีช่องว่าง กรุณากรอกทุกช่อง');
+          if (fullname == null || fullname.isEmpty) {
+            normalDialog(context, 'กรุณากรอกชื่อ-สกุลของท่าน');
+          }else if(username == null || username.isEmpty){
+            normalDialog(context, 'กรุณากรอกชื่อผู้ใช้ของท่าน');
+          }else if(password == null || password.isEmpty){
+            normalDialog(context, 'กรุณากรอกรหัสผ่านของท่าน');
+          }else if(phone == null || phone.isEmpty){
+            normalDialog(context, 'กรุณากรอกเบอร์โทรศัพท์ของท่าน');
           }else{
             checkusername();
           }
@@ -102,10 +100,11 @@ class _SignUpState extends State<SignUp> {
   }
   Future<Null> checkusername()async{
     String url= '${MyConstant().domain}/HiwwoyDelivery/getUserWhereUser.php?isAdd=true&mem_username=$username';
-
+     
     try {
       Response response = await Dio().get(url);
       if (response.toString()== 'null') {
+        
         registerThread();
       } else {
         normalDialog(context, 'ชื่อผู้ใช้ $username มีผู้ใช้แล้ว');
@@ -115,13 +114,14 @@ class _SignUpState extends State<SignUp> {
   }
   Future<Null> registerThread()async{
     String url = '${MyConstant().domain}/HiwwoyDelivery/addData.php?isAdd=true&mem_fullname=$fullname&mem_username=$username&mem_password=$password&mem_phone=$phone';
-
+    
     try {
       Response response = await Dio().get(url);
       print('res = $response');
 
       if (response.toString() == 'true') {
         Navigator.pop(context);
+        normalDialog(context, 'สมัครเสร็จสิ้น');
       } else {
         normalDialog(context, 'ไม่สามารถสมัครสมาชิก กรุณาลองใหม่อีกครั้ง');
       }
